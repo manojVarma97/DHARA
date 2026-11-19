@@ -1,0 +1,60 @@
+[
+  {
+    "id": "tab-dhara",
+    "type": "tab",
+    "label": "Dhara Water Notifications",
+    "disabled": false,
+    "info": "Starter flow. Secure this endpoint and configure WhatsApp credentials before production."
+  },
+  {
+    "id": "http-in",
+    "type": "http in",
+    "z": "tab-dhara",
+    "name": "Order notification webhook",
+    "url": "/dhara/order-notification",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "function-msg"
+      ]
+    ]
+  },
+  {
+    "id": "function-msg",
+    "type": "function",
+    "z": "tab-dhara",
+    "name": "Build customer confirmation",
+    "func": "// Expected JSON: { phone, order_code, total_rupees, delivery_date, slot_name, payment_status }\\nconst o = msg.payload || {};\\nif (!o.phone || !o.order_code) { msg.statusCode = 400; msg.payload = { error: 'phone and order_code required' }; return [null,msg]; }\\nmsg.customerMessage = `Thank you for ordering from Dhara Water! \ud83d\udca7\\\\nOrder: ${o.order_code}\\\\nTotal: \u20b9${o.total_rupees ?? 'To be confirmed'}\\\\nDelivery: ${o.delivery_date ?? 'To be scheduled'}\\\\nSlot: ${o.slot_name ?? 'To be confirmed'}\\\\nPayment: ${o.payment_status ?? 'PENDING'}`;\\nmsg.payload = { accepted: true, order_code: o.order_code, message_ready: true, note: 'Connect the WhatsApp Cloud API HTTP Request node to send msg.customerMessage.' };\\nreturn [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 470,
+    "y": 140,
+    "wires": [
+      [
+        "http-response"
+      ],
+      [
+        "http-response"
+      ]
+    ]
+  },
+  {
+    "id": "http-response",
+    "type": "http response",
+    "z": "tab-dhara",
+    "name": "Webhook response",
+    "statusCode": "",
+    "headers": {},
+    "x": 760,
+    "y": 140,
+    "wires": []
+  }
+]
